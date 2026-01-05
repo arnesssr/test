@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, MessageCircle } from 'lucide-react';
+import { X, MessageCircle } from 'lucide-react';
 
 interface WhatsAppChatProps {
   phoneNumber: string;

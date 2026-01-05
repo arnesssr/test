@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { useFilters } from '@/hooks/useFilters';
@@ -6,7 +6,6 @@ import { useTrending } from '@/hooks/useRecommendations';
 import { ProductGrid } from '@/components/ProductGrid/ProductGrid';
 import { FilterPanel } from '@/components/FilterPanel/FilterPanel';
 import { ProductCarousel } from '@/components/Carousel/ProductCarousel';
-import { Product } from '@/types/product';
 import { Sparkles, Shield, Truck, RotateCcw, TrendingUp, Tag, Clock, Award } from 'lucide-react';
 
 export const HomePage = () => {
@@ -15,16 +14,8 @@ export const HomePage = () => {
   const { trending } = useTrending(12);
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [email, setEmail] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    
     // Show newsletter popup after 30 seconds
     const timer = setTimeout(() => {
       if (!localStorage.getItem('newsletterSubscribed')) {
@@ -33,7 +24,6 @@ export const HomePage = () => {
     }, 30000);
     
     return () => {
-      window.removeEventListener('resize', handleResize);
       clearTimeout(timer);
     };
   }, []);

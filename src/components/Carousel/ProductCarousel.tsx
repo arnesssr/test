@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
-import { Product } from '@/types/product';
-import { useCartStore } from '@/store/cartStore';
-import { useWishlistStore } from '@/store/wishlistStore';
+import { Product } from '@/types';
+import { useStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 
 interface ProductCarouselProps {
@@ -15,8 +13,16 @@ interface ProductCarouselProps {
 export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const { addItem } = useCartStore();
-  const { items: wishlistItems, toggleWishlist } = useWishlistStore();
+  const { addToCart, wishlist, addToWishlist, removeFromWishlist } = useStore();
+  const wishlistItems = wishlist.map(item => item.product.id);
+
+  const toggleWishlist = (product: Product) => {
+    if (wishlistItems.includes(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -64,7 +70,7 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCa
                       loading="lazy"
                     />
                     <button
-                      onClick={() => toggleWishlist(product.id)}
+                      onClick={() => toggleWishlist(product)}
                       className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-700 rounded-full shadow-md hover:shadow-lg transition-shadow"
                       aria-label={wishlistItems.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
@@ -96,7 +102,7 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCa
                         ))}
                       </div>
                       <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                        ({product.reviews})
+                        ({product.reviewCount})
                       </span>
                     </div>
                     <div className="flex items-center justify-between mb-3">
@@ -108,7 +114,7 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCa
                       </span>
                     </div>
                     <button
-                      onClick={() => addItem(product)}
+                      onClick={() => addToCart(product, 1)}
                       className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                     >
                       Add to Cart

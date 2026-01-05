@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogOut, Settings, ShoppingBag, Heart, Package } from 'lucide-react';
+import { User, LogOut, Settings, Heart, Package } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 interface AuthButtonProps {

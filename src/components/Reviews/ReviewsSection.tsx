@@ -18,7 +18,6 @@ interface Review {
 }
 
 interface ReviewsSectionProps {
-  productId: string;
   reviews: Review[];
   averageRating: number;
   totalReviews: number;
@@ -26,7 +25,6 @@ interface ReviewsSectionProps {
 }
 
 export const ReviewsSection = ({
-  productId,
   reviews,
   averageRating,
   totalReviews,
