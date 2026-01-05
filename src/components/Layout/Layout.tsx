@@ -1,9 +1,7 @@
 import { ReactNode } from 'react';
-import { Header } from './Header';
+import Header from './Header';
 import { WhatsAppChat } from '@/components/WhatsAppChat/WhatsAppChat';
 import { SocialProofNotification } from '@/components/SocialProof/SocialProofNotification';
-import { useStore } from '@/store/useStore';
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Truck, RotateCcw, Award } from 'lucide-react';
 import BottomNavProvider from '../Navigation/BottomNavProvider';
@@ -13,15 +11,6 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  const isDarkMode = useStore((state) => state.isDarkMode);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   return (
     <BottomNavProvider>

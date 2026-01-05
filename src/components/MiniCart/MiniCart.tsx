@@ -9,7 +9,7 @@ export const MiniCart = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
   const total = subtotal + (subtotal > 100 ? 0 : 10);
 
   const handleCheckout = () => {
@@ -32,7 +32,7 @@ export const MiniCart = () => {
             animate={{ scale: 1 }}
             className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
           >
-            {cart.reduce((sum, item) => sum + item.quantity, 0)}
+            {cart.reduce((sum, item) => sum + (item.quantity || 1), 0)}
           </motion.span>
         )}
       </button>
@@ -64,7 +64,7 @@ export const MiniCart = () => {
             <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
               <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5" />
-                Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
+                Your Cart ({cart.reduce((sum, item) => sum + (item.quantity || 1), 0)})
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
@@ -95,51 +95,40 @@ export const MiniCart = () => {
                 <div className="space-y-4">
                   {cart.map((item) => (
                     <motion.div
-                      key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`}
+                      key={item.id}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       className="flex gap-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-3"
                     >
                       <Link
-                        to={`/product/${item.product.id}`}
+                        to={`/product/${item.id}`}
                         onClick={() => setIsOpen(false)}
                         className="flex-shrink-0"
                       >
                         <img
-                          src={item.product.images[0]}
-                          alt={item.product.name}
+                          src={item.images[0]}
+                          alt={item.name}
                           className="w-20 h-20 object-cover rounded-lg"
                         />
                       </Link>
 
                       <div className="flex-1 min-w-0">
                         <Link
-                          to={`/product/${item.product.id}`}
+                          to={`/product/${item.id}`}
                           onClick={() => setIsOpen(false)}
                           className="font-semibold dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors line-clamp-1"
                         >
-                          {item.product.name}
+                          {item.name}
                         </Link>
-
-                        {item.selectedColor && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                            Color: {item.selectedColor}
-                          </p>
-                        )}
-                        {item.selectedSize && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            Size: {item.selectedSize}
-                          </p>
-                        )}
 
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() =>
                                 updateCartQuantity(
-                                  item.product.id,
-                                  Math.max(1, item.quantity - 1)
+                                  item.id,
+                                  Math.max(1, (item.quantity || 1) - 1)
                                 )
                               }
                               className="w-7 h-7 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center"
@@ -147,11 +136,11 @@ export const MiniCart = () => {
                               <Minus className="w-3 h-3 dark:text-white" />
                             </button>
                             <span className="w-8 text-center font-medium dark:text-white">
-                              {item.quantity}
+                              {item.quantity || 1}
                             </span>
                             <button
                               onClick={() =>
-                                updateCartQuantity(item.product.id, item.quantity + 1)
+                                updateCartQuantity(item.id, (item.quantity || 1) + 1)
                               }
                               className="w-7 h-7 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center"
                             >
@@ -160,7 +149,7 @@ export const MiniCart = () => {
                           </div>
 
                           <button
-                            onClick={() => removeFromCart(item.product.id)}
+                            onClick={() => removeFromCart(item.id)}
                             className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -170,7 +159,7 @@ export const MiniCart = () => {
 
                       <div className="text-right">
                         <p className="font-bold text-primary-600 dark:text-primary-400">
-                          ${(item.product.price * item.quantity).toFixed(2)}
+                          ${(item.price * (item.quantity || 1)).toFixed(2)}
                         </p>
                       </div>
                     </motion.div>

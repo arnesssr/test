@@ -3,7 +3,7 @@ import { useStore } from '../../store/useStore';
 import { Search, X, Clock, TrendingUp, Mic } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import Fuse from 'fuse.js';
-import { products } from '../../data/products';
+import { mockProducts as products } from '../../data/mockProducts';
 
 export default function MobileSearchOverlay() {
   const { 
@@ -36,7 +36,7 @@ export default function MobileSearchOverlay() {
     if (query.length > 0) {
       const results = fuse.search(query);
       const uniqueSuggestions = Array.from(
-        new Set(results.slice(0, 5).map((result) => result.item.name))
+        new Set(results.slice(0, 5).map((result) => (result.item as any).name))
       );
       setSuggestions(uniqueSuggestions);
     } else {
@@ -70,7 +70,7 @@ export default function MobileSearchOverlay() {
     handleSearch(search);
   };
 
-  const overlayVariants = {
+  const overlayVariants: any = {
     hidden: {
       opacity: 0,
       y: '100%',
@@ -79,7 +79,7 @@ export default function MobileSearchOverlay() {
       opacity: 1,
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       },
@@ -89,12 +89,12 @@ export default function MobileSearchOverlay() {
       y: '100%',
       transition: {
         duration: 0.3,
-        ease: 'easeInOut',
+        ease: 'easeInOut' as const,
       },
     },
   };
 
-  const contentVariants = {
+  const contentVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -105,13 +105,13 @@ export default function MobileSearchOverlay() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, x: -20 },
     visible: {
       opacity: 1,
       x: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
       },

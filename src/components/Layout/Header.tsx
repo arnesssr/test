@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, User, Search, Menu, X, Heart, Package, LogOut } from 'lucide-react';
-import { useStore, useAuthStore } from '../../store/useStore';
-import LoginModal from '../Auth/LoginModal';
-import SignupModal from '../Auth/SignupModal';
-import MiniCart from '../MiniCart/MiniCart';
-import { useBottomNav } from '../Navigation/BottomNavProvider';
+import { useStore } from '../../store/useStore';
+import { useAuthStore } from '../../store/authStore';
+import { MiniCart } from '../MiniCart/MiniCart';
 
 export default function Header() {
   const { cart, setAuthOpen, setAuthMode, setMobileSearchOpen, setMobileMenuOpen } = useStore();
   const { user, isAuthenticated, logout } = useAuthStore();
-  const { isBottomNavVisible } = useBottomNav();
   
   const [isMobile, setIsMobile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpenLocal] = useState(false);
@@ -53,18 +50,18 @@ export default function Header() {
     window.location.href = '/';
   };
 
-  const mobileMenuVariants = {
+  const mobileMenuVariants: any = {
     closed: {
       x: '100%',
       transition: {
         duration: 0.3,
-        ease: 'easeInOut',
+        ease: 'easeInOut' as const,
       },
     },
     open: {
       x: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       },

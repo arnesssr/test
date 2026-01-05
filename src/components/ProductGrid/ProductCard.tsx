@@ -11,11 +11,11 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, onQuickView }: ProductCardProps) => {
   const { addToCart, addToWishlist, wishlist } = useStore();
-  const isInWishlist = wishlist.some((item) => item.product.id === product.id);
+  const isInWishlist = wishlist.some((item) => item.id === product.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart(product, 1);
+    addToCart(product);
   };
 
   const handleToggleWishlist = (e: React.MouseEvent) => {

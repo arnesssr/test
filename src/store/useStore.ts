@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product } from '../types/product';
+import { Product, CartProduct } from '../types';
 
 export interface SearchFilters {
   query: string;
@@ -10,7 +10,7 @@ export interface SearchFilters {
 }
 
 interface StoreState {
-  cart: Product[];
+  cart: CartProduct[];
   wishlist: Product[];
   comparisonList: Product[];
   searchQuery: string;
@@ -20,39 +20,46 @@ interface StoreState {
   authMode: 'login' | 'signup' | null;
   user: { name: string; email: string } | null;
   showOneClickReorder: boolean;
-  
+
   // Mobile UI state
   mobileSearchOpen: boolean;
   activeTab: 'home' | 'categories' | 'search' | 'cart' | 'profile';
   recentSearches: string[];
   mobileMenuOpen: boolean;
   mobileCategoryOpen: boolean;
-  
+
+  // Additional state
+  filters: any;
+  sortBy: string;
+  recentlyViewed: Product[];
+  savedForLater: CartProduct[];
+  appliedCoupon: string | null;
+
   addToCart: (product: Product) => void;
-  removeFromCart: (productId: number) => void;
-  updateCartQuantity: (productId: number, quantity: number) => void;
+  removeFromCart: (productId: string) => void;
+  updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  
+
   addToWishlist: (product: Product) => void;
-  removeFromWishlist: (productId: number) => void;
-  
+  removeFromWishlist: (productId: string) => void;
+
   addToComparison: (product: Product) => void;
-  removeFromComparison: (productId: number) => void;
+  removeFromComparison: (productId: string) => void;
   clearComparison: () => void;
-  
+
   setSearchQuery: (query: string) => void;
   setSearchFilters: (filters: Partial<SearchFilters>) => void;
   clearSearchFilters: () => void;
-  
+
   setSelectedCategory: (category: string | null) => void;
-  
+
   setAuthOpen: (isOpen: boolean) => void;
   setAuthMode: (mode: 'login' | 'signup' | null) => void;
   setUser: (user: { name: string; email: string } | null) => void;
   logout: () => void;
-  
+
   setShowOneClickReorder: (show: boolean) => void;
-  
+
   // Mobile UI actions
   setMobileSearchOpen: (open: boolean) => void;
   setActiveTab: (tab: 'home' | 'categories' | 'search' | 'cart' | 'profile') => void;
@@ -60,6 +67,17 @@ interface StoreState {
   clearRecentSearches: () => void;
   setMobileMenuOpen: (open: boolean) => void;
   setMobileCategoryOpen: (open: boolean) => void;
+
+  // Additional actions
+  setFilters: (filters: any) => void;
+  setSortBy: (sortBy: string) => void;
+  resetFilters: () => void;
+  addToRecentlyViewed: (product: Product) => void;
+  moveToSavedForLater: (item: CartProduct) => void;
+  moveToCart: (item: CartProduct) => void;
+  removeSavedForLater: (itemId: string) => void;
+  applyCoupon: (code: string) => void;
+  removeCoupon: () => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -80,13 +98,20 @@ export const useStore = create<StoreState>()(
       authMode: null,
       user: null,
       showOneClickReorder: false,
-      
+
       // Mobile UI state
       mobileSearchOpen: false,
       activeTab: 'home',
       recentSearches: [],
       mobileMenuOpen: false,
       mobileCategoryOpen: false,
+
+      // Additional state
+      filters: {},
+      sortBy: 'featured',
+      recentlyViewed: [],
+      savedForLater: [],
+      appliedCoupon: null,
 
       addToCart: (product) => {
         const cart = get().cart;
@@ -190,8 +215,33 @@ export const useStore = create<StoreState>()(
       clearRecentSearches: () => set({ recentSearches: [] }),
       
       setMobileMenuOpen: (open) => set({ mobileMenuOpen: open }),
-      
+
       setMobileCategoryOpen: (open) => set({ mobileCategoryOpen: open }),
+
+      // Additional actions
+      setFilters: (filters) => set({ filters }),
+      setSortBy: (sortBy) => set({ sortBy }),
+      resetFilters: () => set({ filters: {} }),
+      addToRecentlyViewed: (product) => {
+        const recentlyViewed = get().recentlyViewed;
+        const filtered = recentlyViewed.filter((p) => p.id !== product.id);
+        set({ recentlyViewed: [product, ...filtered].slice(0, 10) });
+      },
+      moveToSavedForLater: (item) => {
+        const savedForLater = get().savedForLater;
+        if (!savedForLater.find((i: any) => i.id === item.id)) {
+          set({ savedForLater: [...savedForLater, item] });
+        }
+      },
+      moveToCart: (item) => {
+        get().addToCart(item);
+        set({ savedForLater: get().savedForLater.filter((i: any) => i.id !== item.id) });
+      },
+      removeSavedForLater: (itemId) => {
+        set({ savedForLater: get().savedForLater.filter((i: any) => i.id !== itemId) });
+      },
+      applyCoupon: (code) => set({ appliedCoupon: code }),
+      removeCoupon: () => set({ appliedCoupon: null }),
     }),
     {
       name: 'modern-store-storage',
