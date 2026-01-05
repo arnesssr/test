@@ -6,6 +6,7 @@ import { useTrending } from '@/hooks/useRecommendations';
 import { ProductGrid } from '@/components/ProductGrid/ProductGrid';
 import { FilterPanel } from '@/components/FilterPanel/FilterPanel';
 import { ProductCarousel } from '@/components/Carousel/ProductCarousel';
+import { RecentlyViewed } from '@/components/RecentlyViewed/RecentlyViewed';
 import { Sparkles, Shield, Truck, RotateCcw, TrendingUp, Tag, Clock, Award } from 'lucide-react';
 
 export const HomePage = () => {
@@ -250,6 +251,8 @@ export const HomePage = () => {
             <ProductGrid products={filteredProducts} />
           </main>
         </div>
+
+        <RecentlyViewed />
       </div>
 
       {/* Newsletter Popup */}

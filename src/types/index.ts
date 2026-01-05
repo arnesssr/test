@@ -19,6 +19,10 @@ export interface Product {
   model3D?: string;
   volumePricing?: VolumePrice[];
   related?: string[];
+  seller?: Seller;
+  badges?: ProductBadge[];
+  shippingInfo?: ShippingInfo;
+  sizeGuide?: string;
 }
 
 export interface ProductColor {
@@ -85,4 +89,73 @@ export interface User {
     priceRange: [number, number];
   };
   purchaseHistory?: string[];
+}
+
+export interface Seller {
+  id: string;
+  name: string;
+  logo?: string;
+  rating: number;
+  totalReviews: number;
+  joinedDate: string;
+  responseRate: number;
+  responseTime: string;
+  products?: number;
+  country?: string;
+}
+
+export type ProductBadge = 'best-seller' | 'limited-stock' | 'new-arrival' | 'trending' | 'featured' | 'sale';
+
+export interface ShippingInfo {
+  freeShipping: boolean;
+  estimatedDays: [number, number];
+  cost?: number;
+  methods?: ShippingMethod[];
+}
+
+export interface ShippingMethod {
+  name: string;
+  cost: number;
+  estimatedDays: [number, number];
+  description?: string;
+}
+
+export interface ProductQuestion {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  question: string;
+  date: string;
+  answer?: {
+    text: string;
+    answeredBy: string;
+    date: string;
+  };
+  helpful: number;
+}
+
+export interface SavedForLaterItem {
+  product: Product;
+  quantity: number;
+  savedAt: Date;
+  selectedColor?: string;
+  selectedSize?: string;
+}
+
+export interface Coupon {
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  minPurchase?: number;
+  expiryDate?: Date;
+  description?: string;
+}
+
+export interface BulkQuoteRequest {
+  productId: string;
+  quantity: number;
+  email: string;
+  company?: string;
+  message?: string;
 }
