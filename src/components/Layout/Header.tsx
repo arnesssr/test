@@ -1,159 +1,435 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '@/store/useStore';
-import { useAuthStore } from '@/store/authStore';
-import { SearchBar } from '../SearchBar/SearchBar';
-import { LoginModal } from '../Auth/LoginModal';
-import { SignupModal } from '../Auth/SignupModal';
-import { MiniCart } from '../MiniCart/MiniCart';
+import { ShoppingCart, User, Search, Menu, X, Heart, Package, LogOut } from 'lucide-react';
+import { useStore, useAuthStore } from '../../store/useStore';
+import LoginModal from '../Auth/LoginModal';
+import SignupModal from '../Auth/SignupModal';
+import MiniCart from '../MiniCart/MiniCart';
+import { useBottomNav } from '../Navigation/BottomNavProvider';
 
-export const Header = () => {
-  const { wishlist, isDarkMode, toggleDarkMode } = useStore();
+export default function Header() {
+  const { cart, setAuthOpen, setAuthMode, setMobileSearchOpen, setMobileMenuOpen } = useStore();
   const { user, isAuthenticated, logout } = useAuthStore();
-  const [showLogin, setShowLogin] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
+  const { isBottomNavVisible } = useBottomNav();
+  
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpenLocal] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
-  const handleLoginClick = () => {
-    setShowLogin(true);
-    setShowSignup(false);
-  };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
 
-  const handleSignupClick = () => {
-    setShowSignup(true);
-    setShowLogin(false);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    setCartCount(count);
+  }, [cart]);
+
+  useEffect(() => {
+    if (isMobile) {
+      setMobileMenuOpen(mobileMenuOpen);
+    }
+  }, [mobileMenuOpen, isMobile, setMobileMenuOpen]);
+
+  const handleAuthOpen = (mode: 'login' | 'signup') => {
+    setAuthMode(mode);
+    setAuthOpen(true);
+    setMobileMenuOpenLocal(false);
+    setShowUserMenu(false);
   };
 
   const handleLogout = () => {
     logout();
     setShowUserMenu(false);
+    setMobileMenuOpenLocal(false);
+    window.location.href = '/';
+  };
+
+  const mobileMenuVariants = {
+    closed: {
+      x: '100%',
+      transition: {
+        duration: 0.3,
+        ease: 'easeInOut',
+      },
+    },
+    open: {
+      x: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+      },
+    },
+  };
+
+  const overlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-md">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent"
-            >
-              ModernStore
-            </motion.div>
-          </Link>
-
-          <div className="flex-1 max-w-2xl mx-8">
-            <SearchBar />
-          </div>
-
-          <nav className="flex items-center space-x-6">
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Toggle dark mode"
-            >
-              {isDarkMode ? (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
-            </button>
-
-            {isAuthenticated ? (
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="hidden md:block text-sm font-medium dark:text-white">
-                    {user?.name}
-                  </span>
-                </button>
-
-                <AnimatePresence>
-                  {showUserMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2 z-50"
-                    >
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => setShowUserMenu(false)}
-                      >
-                        Profile
-                      </Link>
-                      <Link
-                        to="/orders"
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => setShowUserMenu(false)}
-                      >
-                        Orders
-                      </Link>
-                      <hr className="my-2 dark:border-gray-700" />
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Logout
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <motion.button
-                onClick={handleLoginClick}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+    <>
+      <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center">
+              <a 
+                href="/" 
+                className="flex items-center gap-2 group"
+                aria-label="ModernStore Home"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </motion.button>
-            )}
-
-            <Link
-              to="/wishlist"
-              className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {wishlist.length}
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <ShoppingCart className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  ModernStore
                 </span>
+              </a>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden sm:flex items-center gap-8" role="navigation" aria-label="Main navigation">
+              <a href="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium transition-colors">
+                Home
+              </a>
+              <a href="/products" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium transition-colors">
+                Products
+              </a>
+              <a href="/categories" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium transition-colors">
+                Categories
+              </a>
+              <a href="/deals" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium transition-colors">
+                Deals
+              </a>
+            </nav>
+
+            {/* Right Side Actions */}
+            <div className="hidden sm:flex items-center gap-4">
+              {/* Search */}
+              <button
+                onClick={() => setMobileSearchOpen(true)}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
+              {/* User Menu */}
+              {isAuthenticated && user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="User menu"
+                    aria-expanded={showUserMenu}
+                  >
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  </button>
+
+                  <AnimatePresence>
+                    {showUserMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-lg ring-1 ring-gray-200 dark:ring-gray-700 py-2 z-50"
+                      >
+                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                          <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                        </div>
+                        
+                        <a href="/profile" className="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          <User className="w-4 h-4" />
+                          Profile
+                        </a>
+                        
+                        <a href="/orders" className="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          <Package className="w-4 h-4" />
+                          Orders
+                        </a>
+                        
+                        <a href="/wishlist" className="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          <Heart className="w-4 h-4" />
+                          Wishlist
+                        </a>
+                        
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign out
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleAuthOpen('login')}
+                    className="px-4 py-2 text-blue-600 hover:text-blue-700 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+                  >
+                    Sign in
+                  </button>
+                  <button
+                    onClick={() => handleAuthOpen('signup')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    Sign up
+                  </button>
+                </div>
               )}
-            </Link>
 
-            <MiniCart />
-          </nav>
+              {/* Cart */}
+              <button
+                onClick={() => setCartOpen(true)}
+                className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Open cart"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                    aria-label={`${cartCount} items in cart`}
+                  >
+                    {cartCount}
+                  </motion.span>
+                )}
+              </button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="sm:hidden flex items-center gap-3">
+              <button
+                onClick={() => setMobileSearchOpen(true)}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              
+              <button
+                onClick={() => setMobileMenuOpenLocal(!mobileMenuOpen)}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Open menu"
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Auth Modals */}
-      <LoginModal
-        isOpen={showLogin}
-        onClose={() => setShowLogin(false)}
-        onSwitchToSignup={handleSignupClick}
-      />
-      <SignupModal
-        isOpen={showSignup}
-        onClose={() => setShowSignup(false)}
-        onSwitchToLogin={handleLoginClick}
-      />
-    </header>
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={overlayVariants}
+            className="fixed inset-0 z-30 sm:hidden bg-black/50"
+            onClick={() => setMobileMenuOpenLocal(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.nav
+            initial="closed"
+            animate="open"
+            exit="closed"
+            variants={mobileMenuVariants}
+            className="fixed top-0 right-0 z-40 w-full h-full max-w-sm bg-white dark:bg-gray-900 shadow-xl sm:hidden"
+            role="navigation"
+            aria-label="Mobile navigation"
+          >
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <ShoppingCart className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xl font-bold text-gray-900 dark:text-white">Menu</span>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto py-4">
+                <div className="px-4 space-y-2">
+                  <a
+                    href="/"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                    onClick={() => setMobileMenuOpenLocal(false)}
+                  >
+                    <House className="w-5 h-5" />
+                    Home
+                  </a>
+                  
+                  <a
+                    href="/products"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                    onClick={() => setMobileMenuOpenLocal(false)}
+                  >
+                    <Grid3x3 className="w-5 h-5" />
+                    Products
+                  </a>
+                  
+                  <a
+                    href="/categories"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                    onClick={() => setMobileMenuOpenLocal(false)}
+                  >
+                    <Layers className="w-5 h-5" />
+                    Categories
+                  </a>
+                  
+                  <a
+                    href="/deals"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                    onClick={() => setMobileMenuOpenLocal(false)}
+                  >
+                    <Tag className="w-5 h-5" />
+                    Deals
+                  </a>
+                </div>
+
+                <div className="px-4 mt-8">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                    Account
+                  </h3>
+                  
+                  <div className="space-y-2">
+                    {isAuthenticated && user ? (
+                      <>
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">
+                              {user.name?.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                          </div>
+                        </div>
+                        
+                        <a
+                          href="/profile"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                          onClick={() => setMobileMenuOpenLocal(false)}
+                        >
+                          <User className="w-5 h-5" />
+                          Profile
+                        </a>
+                        
+                        <a
+                          href="/orders"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                          onClick={() => setMobileMenuOpenLocal(false)}
+                        >
+                          <Package className="w-5 h-5" />
+                          Orders
+                        </a>
+                        
+                        <a
+                          href="/wishlist"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                          onClick={() => setMobileMenuOpenLocal(false)}
+                        >
+                          <Heart className="w-5 h-5" />
+                          Wishlist
+                        </a>
+                        
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors text-red-600"
+                        >
+                          <LogOut className="w-5 h-5" />
+                          Sign out
+                        </button>
+                      </>
+                    ) : (
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => handleAuthOpen('login')}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                        >
+                          <User className="w-5 h-5" />
+                          Sign in
+                        </button>
+                        
+                        <button
+                          onClick={() => handleAuthOpen('signup')}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                        >
+                          <UserPlus className="w-5 h-5" />
+                          Sign up
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Cart Summary */}
+              <div className="border-t border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Cart ({cartCount} items)</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0).toFixed(2)}
+                  </span>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    setCartOpen(true);
+                    setMobileMenuOpenLocal(false);
+                  }}
+                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  View Cart
+                </button>
+              </div>
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
+
+      {/* Modals and Overlays */}
+      <MiniCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+    </>
   );
-};
+}
+
+// Import additional icons used in the component
+import { 
+  House, 
+  Grid3x3, 
+  Layers, 
+  Tag, 
+  UserPlus 
+} from 'lucide-react';
