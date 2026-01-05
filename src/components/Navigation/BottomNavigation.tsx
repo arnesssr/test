@@ -89,8 +89,8 @@ export default function BottomNavigation() {
               `}
             >
               <motion.div
-n                animate={isActive ? { scale: 1.1 } : { scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                animate={isActive ? { scale: 1.1 } : { scale: 1 }}
+                transition={{ type: 'spring' as const, stiffness: 400, damping: 25 }}
                 className="relative"
               >
                 <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />

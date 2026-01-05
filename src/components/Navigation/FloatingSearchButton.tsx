@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/useStore';
-import { Search, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function FloatingSearchButton() {
@@ -11,14 +11,14 @@ export default function FloatingSearchButton() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Hide FAB when scrolling down, show when scrolling up
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -26,13 +26,13 @@ export default function FloatingSearchButton() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  const fabVariants = {
+  const fabVariants: any = {
     visible: {
       opacity: 1,
       scale: 1,
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
       },
@@ -45,11 +45,6 @@ export default function FloatingSearchButton() {
         duration: 0.2,
       },
     },
-  };
-
-  const iconVariants = {
-    search: { rotate: 0 },
-    close: { rotate: 90 },
   };
 
   return (

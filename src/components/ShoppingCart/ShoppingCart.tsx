@@ -22,7 +22,7 @@ export const ShoppingCart = () => {
   const [couponCode, setCouponCode] = useState('');
 
   const subtotal = cart.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + item.price * (item.quantity || 1),
     0
   );
 
@@ -141,22 +141,22 @@ export const ShoppingCart = () => {
               className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4"
             >
               <div className="flex gap-4">
-                <Link to={`/product/${item.product.id}`}>
+                <Link to={`/product/${item.id}`}>
                   <img
-                    src={item.product.images[0]}
-                    alt={item.product.name}
+                    src={item.images[0]}
+                    alt={item.name}
                     className="w-24 h-24 object-cover rounded"
                   />
                 </Link>
 
                 <div className="flex-1">
-                  <Link to={`/product/${item.product.id}`}>
+                  <Link to={`/product/${item.id}`}>
                     <h3 className="font-semibold hover:text-primary-600 dark:hover:text-primary-400">
-                      {item.product.name}
+                      {item.name}
                     </h3>
                   </Link>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {item.product.brand}
+                    {item.brand}
                   </p>
                   <div className="flex gap-4 mt-2 text-sm">
                     {item.selectedColor && (
@@ -176,8 +176,8 @@ export const ShoppingCart = () => {
                       <button
                         onClick={() =>
                           updateCartQuantity(
-                            item.product.id,
-                            Math.max(1, item.quantity - 1)
+                            item.id,
+                            Math.max(1, (item.quantity || 1) - 1)
                           )
                         }
                         className="w-8 h-8 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -185,11 +185,11 @@ export const ShoppingCart = () => {
                         -
                       </button>
                       <span className="w-12 text-center font-medium">
-                        {item.quantity}
+                        {item.quantity || 1}
                       </span>
                       <button
                         onClick={() =>
-                          updateCartQuantity(item.product.id, item.quantity + 1)
+                          updateCartQuantity(item.id, (item.quantity || 1) + 1)
                         }
                         className="w-8 h-8 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
@@ -199,16 +199,16 @@ export const ShoppingCart = () => {
 
                     <div className="flex items-center gap-4">
                       <button
-                        onClick={() => moveToSavedForLater(item.product.id)}
+                        onClick={() => moveToSavedForLater(item)}
                         className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
                       >
                         Save for later
                       </button>
                       <span className="text-lg font-bold">
-                        ${(item.product.price * item.quantity).toFixed(2)}
+                        ${(item.price * (item.quantity || 1)).toFixed(2)}
                       </span>
                       <button
-                        onClick={() => removeFromCart(item.product.id)}
+                        onClick={() => removeFromCart(item.id)}
                         className="text-red-500 hover:text-red-600"
                         aria-label="Remove"
                       >
@@ -230,39 +230,39 @@ export const ShoppingCart = () => {
             <div className="space-y-3">
               {savedForLater.map((item) => (
                 <div
-                  key={item.product.id}
+                  key={item.id}
                   className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 flex gap-4"
                 >
-                  <Link to={`/product/${item.product.id}`}>
+                  <Link to={`/product/${item.id}`}>
                     <img
-                      src={item.product.images[0]}
-                      alt={item.product.name}
+                      src={item.images[0]}
+                      alt={item.name}
                       className="w-20 h-20 object-cover rounded"
                     />
                   </Link>
                   <div className="flex-1">
-                    <Link to={`/product/${item.product.id}`}>
+                    <Link to={`/product/${item.id}`}>
                       <h3 className="font-semibold hover:text-primary-600 dark:hover:text-primary-400 dark:text-white">
-                        {item.product.name}
+                        {item.name}
                       </h3>
                     </Link>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{item.product.brand}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{item.brand}</p>
                     <div className="flex gap-2 mt-2">
                       <button
-                        onClick={() => moveToCart(item.product.id)}
+                        onClick={() => moveToCart(item)}
                         className="text-sm bg-primary-600 hover:bg-primary-700 text-white px-3 py-1 rounded"
                       >
                         Move to Cart
                       </button>
                       <button
-                        onClick={() => removeSavedForLater(item.product.id)}
+                        onClick={() => removeSavedForLater(item.id)}
                         className="text-sm text-red-600 dark:text-red-400 hover:underline"
                       >
                         Delete
                       </button>
                     </div>
                   </div>
-                  <span className="text-lg font-bold dark:text-white">${item.product.price.toFixed(2)}</span>
+                  <span className="text-lg font-bold dark:text-white">${item.price.toFixed(2)}</span>
                 </div>
               ))}
             </div>

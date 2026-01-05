@@ -17,7 +17,7 @@ export const FrequentlyBoughtTogether = ({ mainProduct, products, title }: Frequ
   const total = items.reduce((sum, p) => sum + p.price, 0);
 
   const handleAddAll = () => {
-    items.forEach((p) => addToCart(p, 1));
+    items.forEach((p) => addToCart(p));
   };
 
   return (

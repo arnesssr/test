@@ -77,7 +77,7 @@ export default function MobileCategorySheet() {
     };
   }, [mobileCategoryOpen]);
 
-  const sheetVariants = {
+  const sheetVariants: any = {
     hidden: {
       opacity: 0,
       y: '100%',
@@ -86,7 +86,7 @@ export default function MobileCategorySheet() {
       opacity: 1,
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       },
@@ -96,7 +96,7 @@ export default function MobileCategorySheet() {
       y: '100%',
       transition: {
         duration: 0.3,
-        ease: 'easeInOut',
+        ease: 'easeInOut' as const,
       },
     },
   };

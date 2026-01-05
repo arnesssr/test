@@ -43,6 +43,12 @@ export interface CartItem {
   selectedSize?: string;
 }
 
+export interface CartProduct extends Product {
+  quantity?: number;
+  selectedColor?: string;
+  selectedSize?: string;
+}
+
 export interface WishlistItem {
   product: Product;
   addedAt: Date;

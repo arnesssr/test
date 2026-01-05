@@ -20,10 +20,15 @@ export const QuickViewModal = ({ product, isOpen, onClose }: QuickViewModalProps
 
   if (!product) return null;
 
-  const isInWishlist = wishlist.some((item) => item.product.id === product.id);
+  const isInWishlist = wishlist.some((item) => item.id === product.id);
 
   const handleAddToCart = () => {
-    addToCart(product, quantity, selectedColor, selectedSize);
+    addToCart({
+      ...product,
+      quantity,
+      selectedColor,
+      selectedSize,
+    });
     onClose();
   };
 

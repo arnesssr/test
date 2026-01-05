@@ -26,11 +26,16 @@ export const ProductDetail = ({ product }: ProductDetailProps) => {
 
   const { addToCart, addToWishlist, addToComparison, wishlist, comparisonList } = useStore();
 
-  const isInWishlist = wishlist.some((item) => item.product.id === product.id);
+  const isInWishlist = wishlist.some((item) => item.id === product.id);
   const isInComparison = comparisonList.some((p) => p.id === product.id);
 
   const handleAddToCart = () => {
-    addToCart(product, quantity, selectedColor, selectedSize);
+    addToCart({
+      ...product,
+      quantity,
+      selectedColor,
+      selectedSize,
+    });
   };
 
   const handleBuyNow = () => {

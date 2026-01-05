@@ -79,27 +79,25 @@ export const OneClickReorder = () => {
   const handleReorder = (order: PreviousOrder) => {
     order.items.forEach((item) => {
       // For mock purposes, we're just adding a simplified cart item
-      addToCart(
-        {
-          id: item.productId,
-          name: item.productName,
-          description: 'Reorder item',
-          price: item.price,
-          images: [item.image],
-          category: 'Electronics',
-          subcategory: 'Accessories',
-          brand: 'Unknown',
-          rating: 4.5,
-          reviewCount: 100,
-          colors: [],
-          sizes: [],
-          stock: 10,
-          tags: [],
-          features: [],
-          specifications: {},
-        },
-        item.quantity
-      );
+      addToCart({
+        id: item.productId,
+        name: item.productName,
+        description: 'Reorder item',
+        price: item.price,
+        images: [item.image],
+        category: 'Electronics',
+        subcategory: 'Accessories',
+        brand: 'Unknown',
+        rating: 4.5,
+        reviewCount: 100,
+        colors: [],
+        sizes: [],
+        stock: 10,
+        tags: [],
+        features: [],
+        specifications: {},
+        quantity: item.quantity,
+      });
     });
   };
 
