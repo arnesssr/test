@@ -17,7 +17,7 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4, onQuickView
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const { addToCart, wishlist, addToWishlist, removeFromWishlist } = useStore();
-  const wishlistItems = wishlist.map(item => item.product.id);
+  const wishlistItems = wishlist.map(item => item.id);
 
   const toggleWishlist = (product: Product) => {
     if (wishlistItems.includes(product.id)) {

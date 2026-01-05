@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Truck, RotateCcw, Award } from 'lucide-react';
+import BottomNavProvider from '../Navigation/BottomNavProvider';
 
 interface LayoutProps {
   children: ReactNode;
@@ -23,65 +24,66 @@ export const Layout = ({ children }: LayoutProps) => {
   }, [isDarkMode]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
-      <Header />
-      <main>{children}</main>
-      
-      {/* WhatsApp Chat */}
-      <WhatsAppChat
-        phoneNumber="+1234567890"
-        message="Hello! I have a question about your products."
-      />
+    <BottomNavProvider>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+        <Header />
+        <main>{children}</main>
+        
+        {/* WhatsApp Chat */}
+        <WhatsAppChat
+          phoneNumber="+1234567890"
+          message="Hello! I have a question about your products."
+        />
 
-      {/* Social Proof Notifications */}
-      <SocialProofNotification />
-      
-      {/* Enhanced Footer */}
-      <footer className="mt-16 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
-        <div className="container mx-auto px-4 py-12">
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Award className="w-8 h-8 mx-auto mb-2 text-primary-500" />
-              <h4 className="font-bold text-xl mb-1">50K+</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Happy Customers</p>
-            </motion.div>
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Truck className="w-8 h-8 mx-auto mb-2 text-green-500" />
-              <h4 className="font-bold text-xl mb-1">Free</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Shipping</p>
-            </motion.div>
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <RotateCcw className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-              <h4 className="font-bold text-xl mb-1">30</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Day Returns</p>
-            </motion.div>
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Shield className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-              <h4 className="font-bold text-xl mb-1">100%</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Secure</p>
-            </motion.div>
-          </div>
+        {/* Social Proof Notifications */}
+        <SocialProofNotification />
+        
+        {/* Enhanced Footer - Hide on mobile since we have bottom nav */}
+        <footer className="mt-16 bg-white dark:bg-gray-800 border-t dark:border-gray-700 hidden sm:block">
+          <div className="container mx-auto px-4 py-12">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+              <motion.div 
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Award className="w-8 h-8 mx-auto mb-2 text-primary-500" />
+                <h4 className="font-bold text-xl mb-1">50K+</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Happy Customers</p>
+              </motion.div>
+              <motion.div 
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Truck className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                <h4 className="font-bold text-xl mb-1">Free</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Shipping</p>
+              </motion.div>
+              <motion.div 
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <RotateCcw className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+                <h4 className="font-bold text-xl mb-1">30</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Day Returns</p>
+              </motion.div>
+              <motion.div 
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Shield className="w-8 h-8 mx-auto mb-2 text-purple-500" />
+                <h4 className="font-bold text-xl mb-1">100%</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Secure</p>
+              </motion.div>
+            </div>
 
           {/* Footer Links */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
@@ -140,5 +142,6 @@ export const Layout = ({ children }: LayoutProps) => {
         </div>
       </footer>
     </div>
+  </BottomNavProvider>
   );
 };

@@ -1,230 +1,225 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, CartItem, WishlistItem, FilterOptions, SortOption, SavedForLaterItem, Coupon } from '@/types';
+import { Product } from '../types/product';
 
-interface StoreState {
-  cart: CartItem[];
-  wishlist: WishlistItem[];
-  comparisonList: Product[];
-  recentlyViewed: Product[];
-  savedForLater: SavedForLaterItem[];
-  appliedCoupon: Coupon | null;
-  isDarkMode: boolean;
-  filters: FilterOptions;
-  sortBy: SortOption;
-  searchQuery: string;
-  
-  addToCart: (product: Product, quantity: number, color?: string, size?: string) => void;
-  removeFromCart: (productId: string) => void;
-  updateCartQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
-  moveToSavedForLater: (productId: string) => void;
-  moveToCart: (productId: string) => void;
-  removeSavedForLater: (productId: string) => void;
-  
-  addToWishlist: (product: Product) => void;
-  removeFromWishlist: (productId: string) => void;
-  
-  addToComparison: (product: Product) => void;
-  removeFromComparison: (productId: string) => void;
-  clearComparison: () => void;
-  
-  addToRecentlyViewed: (product: Product) => void;
-  clearRecentlyViewed: () => void;
-  
-  applyCoupon: (coupon: Coupon) => void;
-  removeCoupon: () => void;
-  
-  toggleDarkMode: () => void;
-  setFilters: (filters: Partial<FilterOptions>) => void;
-  resetFilters: () => void;
-  setSortBy: (sortBy: SortOption) => void;
-  setSearchQuery: (query: string) => void;
+export interface SearchFilters {
+  query: string;
+  category: string;
+  priceRange: [number, number];
+  sort: string;
 }
 
-const defaultFilters: FilterOptions = {
-  categories: [],
-  brands: [],
-  priceRange: [0, 1000],
-  rating: 0,
-  inStock: false,
-  colors: [],
-  sizes: [],
-};
+interface StoreState {
+  cart: Product[];
+  wishlist: Product[];
+  comparisonList: Product[];
+  searchQuery: string;
+  searchFilters: SearchFilters;
+  selectedCategory: string | null;
+  isAuthOpen: boolean;
+  authMode: 'login' | 'signup' | null;
+  user: { name: string; email: string } | null;
+  showOneClickReorder: boolean;
+  
+  // Mobile UI state
+  mobileSearchOpen: boolean;
+  activeTab: 'home' | 'categories' | 'search' | 'cart' | 'profile';
+  recentSearches: string[];
+  mobileMenuOpen: boolean;
+  mobileCategoryOpen: boolean;
+  
+  addToCart: (product: Product) => void;
+  removeFromCart: (productId: number) => void;
+  updateCartQuantity: (productId: number, quantity: number) => void;
+  clearCart: () => void;
+  
+  addToWishlist: (product: Product) => void;
+  removeFromWishlist: (productId: number) => void;
+  
+  addToComparison: (product: Product) => void;
+  removeFromComparison: (productId: number) => void;
+  clearComparison: () => void;
+  
+  setSearchQuery: (query: string) => void;
+  setSearchFilters: (filters: Partial<SearchFilters>) => void;
+  clearSearchFilters: () => void;
+  
+  setSelectedCategory: (category: string | null) => void;
+  
+  setAuthOpen: (isOpen: boolean) => void;
+  setAuthMode: (mode: 'login' | 'signup' | null) => void;
+  setUser: (user: { name: string; email: string } | null) => void;
+  logout: () => void;
+  
+  setShowOneClickReorder: (show: boolean) => void;
+  
+  // Mobile UI actions
+  setMobileSearchOpen: (open: boolean) => void;
+  setActiveTab: (tab: 'home' | 'categories' | 'search' | 'cart' | 'profile') => void;
+  addRecentSearch: (query: string) => void;
+  clearRecentSearches: () => void;
+  setMobileMenuOpen: (open: boolean) => void;
+  setMobileCategoryOpen: (open: boolean) => void;
+}
 
 export const useStore = create<StoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       cart: [],
       wishlist: [],
       comparisonList: [],
-      recentlyViewed: [],
-      savedForLater: [],
-      appliedCoupon: null,
-      isDarkMode: false,
-      filters: defaultFilters,
-      sortBy: 'relevance',
       searchQuery: '',
+      searchFilters: {
+        query: '',
+        category: '',
+        priceRange: [0, 1000],
+        sort: 'featured',
+      },
+      selectedCategory: null,
+      isAuthOpen: false,
+      authMode: null,
+      user: null,
+      showOneClickReorder: false,
+      
+      // Mobile UI state
+      mobileSearchOpen: false,
+      activeTab: 'home',
+      recentSearches: [],
+      mobileMenuOpen: false,
+      mobileCategoryOpen: false,
 
-      addToCart: (product, quantity, color, size) =>
-        set((state) => {
-          const existingItem = state.cart.find(
-            (item) => 
-              item.product.id === product.id && 
-              item.selectedColor === color && 
-              item.selectedSize === size
-          );
+      addToCart: (product) => {
+        const cart = get().cart;
+        const existingItem = cart.find((item) => item.id === product.id);
+        
+        if (existingItem) {
+          set({
+            cart: cart.map((item) =>
+              item.id === product.id ? { ...item, quantity: (item.quantity || 1) + 1 } : item
+            ),
+          });
+        } else {
+          set({ cart: [...cart, { ...product, quantity: 1 }] });
+        }
+      },
 
-          if (existingItem) {
-            return {
-              cart: state.cart.map((item) =>
-                item.product.id === product.id &&
-                item.selectedColor === color &&
-                item.selectedSize === size
-                  ? { ...item, quantity: item.quantity + quantity }
-                  : item
-              ),
-            };
-          }
+      removeFromCart: (productId) => {
+        set({ cart: get().cart.filter((item) => item.id !== productId) });
+      },
 
-          return {
-            cart: [
-              ...state.cart,
-              { product, quantity, selectedColor: color, selectedSize: size },
-            ],
-          };
-        }),
-
-      removeFromCart: (productId) =>
-        set((state) => ({
-          cart: state.cart.filter((item) => item.product.id !== productId),
-        })),
-
-      updateCartQuantity: (productId, quantity) =>
-        set((state) => ({
-          cart: state.cart.map((item) =>
-            item.product.id === productId ? { ...item, quantity } : item
-          ),
-        })),
+      updateCartQuantity: (productId, quantity) => {
+        if (quantity <= 0) {
+          get().removeFromCart(productId);
+        } else {
+          set({
+            cart: get().cart.map((item) =>
+              item.id === productId ? { ...item, quantity } : item
+            ),
+          });
+        }
+      },
 
       clearCart: () => set({ cart: [] }),
 
-      moveToSavedForLater: (productId) =>
-        set((state) => {
-          const cartItem = state.cart.find((item) => item.product.id === productId);
-          if (!cartItem) return state;
-          
-          return {
-            cart: state.cart.filter((item) => item.product.id !== productId),
-            savedForLater: [
-              ...state.savedForLater,
-              {
-                product: cartItem.product,
-                quantity: cartItem.quantity,
-                savedAt: new Date(),
-                selectedColor: cartItem.selectedColor,
-                selectedSize: cartItem.selectedSize,
-              },
-            ],
-          };
-        }),
+      addToWishlist: (product) => {
+        const wishlist = get().wishlist;
+        if (!wishlist.find((item) => item.id === product.id)) {
+          set({ wishlist: [...wishlist, product] });
+        }
+      },
 
-      moveToCart: (productId) =>
-        set((state) => {
-          const savedItem = state.savedForLater.find((item) => item.product.id === productId);
-          if (!savedItem) return state;
-          
-          return {
-            savedForLater: state.savedForLater.filter((item) => item.product.id !== productId),
-            cart: [
-              ...state.cart,
-              {
-                product: savedItem.product,
-                quantity: savedItem.quantity,
-                selectedColor: savedItem.selectedColor,
-                selectedSize: savedItem.selectedSize,
-              },
-            ],
-          };
-        }),
+      removeFromWishlist: (productId) => {
+        set({ wishlist: get().wishlist.filter((item) => item.id !== productId) });
+      },
 
-      removeSavedForLater: (productId) =>
-        set((state) => ({
-          savedForLater: state.savedForLater.filter((item) => item.product.id !== productId),
-        })),
+      addToComparison: (product) => {
+        const comparisonList = get().comparisonList;
+        if (comparisonList.length < 4 && !comparisonList.find((item) => item.id === product.id)) {
+          set({ comparisonList: [...comparisonList, product] });
+        }
+      },
 
-      addToWishlist: (product) =>
-        set((state) => {
-          if (state.wishlist.some((item) => item.product.id === product.id)) {
-            return state;
-          }
-          return {
-            wishlist: [...state.wishlist, { product, addedAt: new Date() }],
-          };
-        }),
-
-      removeFromWishlist: (productId) =>
-        set((state) => ({
-          wishlist: state.wishlist.filter((item) => item.product.id !== productId),
-        })),
-
-      addToComparison: (product) =>
-        set((state) => {
-          if (state.comparisonList.length >= 4) {
-            return state;
-          }
-          if (state.comparisonList.some((p) => p.id === product.id)) {
-            return state;
-          }
-          return {
-            comparisonList: [...state.comparisonList, product],
-          };
-        }),
-
-      removeFromComparison: (productId) =>
-        set((state) => ({
-          comparisonList: state.comparisonList.filter((p) => p.id !== productId),
-        })),
+      removeFromComparison: (productId) => {
+        set({ comparisonList: get().comparisonList.filter((item) => item.id !== productId) });
+      },
 
       clearComparison: () => set({ comparisonList: [] }),
 
-      addToRecentlyViewed: (product) =>
-        set((state) => {
-          const filtered = state.recentlyViewed.filter((p) => p.id !== product.id);
-          return {
-            recentlyViewed: [product, ...filtered].slice(0, 20),
-          };
+      setSearchQuery: (query) => set({ searchQuery: query }),
+
+      setSearchFilters: (filters) =>
+        set({
+          searchFilters: { ...get().searchFilters, ...filters },
         }),
 
-      clearRecentlyViewed: () => set({ recentlyViewed: [] }),
+      clearSearchFilters: () =>
+        set({
+          searchFilters: {
+            query: '',
+            category: '',
+            priceRange: [0, 1000],
+            sort: 'featured',
+          },
+        }),
 
-      applyCoupon: (coupon) => set({ appliedCoupon: coupon }),
+      setSelectedCategory: (category) => set({ selectedCategory: category }),
 
-      removeCoupon: () => set({ appliedCoupon: null }),
+      setAuthOpen: (isOpen) => set({ isAuthOpen: isOpen }),
 
-      toggleDarkMode: () =>
-        set((state) => ({ isDarkMode: !state.isDarkMode })),
+      setAuthMode: (mode) => set({ authMode: mode }),
 
-      setFilters: (filters) =>
-        set((state) => ({
-          filters: { ...state.filters, ...filters },
-        })),
+      setUser: (user) => set({ user }),
 
-      resetFilters: () => set({ filters: defaultFilters }),
+      logout: () => {
+        set({ user: null, cart: [], wishlist: [] });
+      },
 
-      setSortBy: (sortBy) => set({ sortBy }),
-
-      setSearchQuery: (query) => set({ searchQuery: query }),
+      setShowOneClickReorder: (show) => set({ showOneClickReorder: show }),
+      
+      // Mobile UI actions
+      setMobileSearchOpen: (open) => set({ mobileSearchOpen: open }),
+      
+      setActiveTab: (tab) => set({ activeTab: tab }),
+      
+      addRecentSearch: (query) => {
+        const recentSearches = get().recentSearches;
+        const updatedSearches = [query, ...recentSearches.filter(s => s !== query)].slice(0, 10);
+        set({ recentSearches: updatedSearches });
+      },
+      
+      clearRecentSearches: () => set({ recentSearches: [] }),
+      
+      setMobileMenuOpen: (open) => set({ mobileMenuOpen: open }),
+      
+      setMobileCategoryOpen: (open) => set({ mobileCategoryOpen: open }),
     }),
     {
-      name: 'storefront-storage',
+      name: 'modern-store-storage',
       partialize: (state) => ({
         cart: state.cart,
         wishlist: state.wishlist,
-        recentlyViewed: state.recentlyViewed,
-        savedForLater: state.savedForLater,
-        isDarkMode: state.isDarkMode,
+        user: state.user,
+        recentSearches: state.recentSearches,
       }),
+    }
+  )
+);
+
+export const useAuthStore = create<{
+  isAuthenticated: boolean;
+  user: { name: string; email: string } | null;
+  setAuth: (isAuthenticated: boolean, user?: { name: string; email: string }) => void;
+  logout: () => void;
+}>()(
+  persist(
+    (set) => ({
+      isAuthenticated: false,
+      user: null,
+      setAuth: (isAuthenticated, user) => set({ isAuthenticated, user: user || null }),
+      logout: () => set({ isAuthenticated: false, user: null }),
+    }),
+    {
+      name: 'modern-store-auth',
     }
   )
 );
