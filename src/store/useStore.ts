@@ -1,11 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, CartItem, WishlistItem, FilterOptions, SortOption } from '@/types';
+import { Product, CartItem, WishlistItem, FilterOptions, SortOption, SavedForLaterItem, Coupon } from '@/types';
 
 interface StoreState {
   cart: CartItem[];
   wishlist: WishlistItem[];
   comparisonList: Product[];
+  recentlyViewed: Product[];
+  savedForLater: SavedForLaterItem[];
+  appliedCoupon: Coupon | null;
   isDarkMode: boolean;
   filters: FilterOptions;
   sortBy: SortOption;
@@ -15,6 +18,9 @@ interface StoreState {
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  moveToSavedForLater: (productId: string) => void;
+  moveToCart: (productId: string) => void;
+  removeSavedForLater: (productId: string) => void;
   
   addToWishlist: (product: Product) => void;
   removeFromWishlist: (productId: string) => void;
@@ -22,6 +28,12 @@ interface StoreState {
   addToComparison: (product: Product) => void;
   removeFromComparison: (productId: string) => void;
   clearComparison: () => void;
+  
+  addToRecentlyViewed: (product: Product) => void;
+  clearRecentlyViewed: () => void;
+  
+  applyCoupon: (coupon: Coupon) => void;
+  removeCoupon: () => void;
   
   toggleDarkMode: () => void;
   setFilters: (filters: Partial<FilterOptions>) => void;
@@ -46,6 +58,9 @@ export const useStore = create<StoreState>()(
       cart: [],
       wishlist: [],
       comparisonList: [],
+      recentlyViewed: [],
+      savedForLater: [],
+      appliedCoupon: null,
       isDarkMode: false,
       filters: defaultFilters,
       sortBy: 'relevance',
@@ -94,6 +109,50 @@ export const useStore = create<StoreState>()(
 
       clearCart: () => set({ cart: [] }),
 
+      moveToSavedForLater: (productId) =>
+        set((state) => {
+          const cartItem = state.cart.find((item) => item.product.id === productId);
+          if (!cartItem) return state;
+          
+          return {
+            cart: state.cart.filter((item) => item.product.id !== productId),
+            savedForLater: [
+              ...state.savedForLater,
+              {
+                product: cartItem.product,
+                quantity: cartItem.quantity,
+                savedAt: new Date(),
+                selectedColor: cartItem.selectedColor,
+                selectedSize: cartItem.selectedSize,
+              },
+            ],
+          };
+        }),
+
+      moveToCart: (productId) =>
+        set((state) => {
+          const savedItem = state.savedForLater.find((item) => item.product.id === productId);
+          if (!savedItem) return state;
+          
+          return {
+            savedForLater: state.savedForLater.filter((item) => item.product.id !== productId),
+            cart: [
+              ...state.cart,
+              {
+                product: savedItem.product,
+                quantity: savedItem.quantity,
+                selectedColor: savedItem.selectedColor,
+                selectedSize: savedItem.selectedSize,
+              },
+            ],
+          };
+        }),
+
+      removeSavedForLater: (productId) =>
+        set((state) => ({
+          savedForLater: state.savedForLater.filter((item) => item.product.id !== productId),
+        })),
+
       addToWishlist: (product) =>
         set((state) => {
           if (state.wishlist.some((item) => item.product.id === product.id)) {
@@ -129,6 +188,20 @@ export const useStore = create<StoreState>()(
 
       clearComparison: () => set({ comparisonList: [] }),
 
+      addToRecentlyViewed: (product) =>
+        set((state) => {
+          const filtered = state.recentlyViewed.filter((p) => p.id !== product.id);
+          return {
+            recentlyViewed: [product, ...filtered].slice(0, 20),
+          };
+        }),
+
+      clearRecentlyViewed: () => set({ recentlyViewed: [] }),
+
+      applyCoupon: (coupon) => set({ appliedCoupon: coupon }),
+
+      removeCoupon: () => set({ appliedCoupon: null }),
+
       toggleDarkMode: () =>
         set((state) => ({ isDarkMode: !state.isDarkMode })),
 
@@ -148,6 +221,8 @@ export const useStore = create<StoreState>()(
       partialize: (state) => ({
         cart: state.cart,
         wishlist: state.wishlist,
+        recentlyViewed: state.recentlyViewed,
+        savedForLater: state.savedForLater,
         isDarkMode: state.isDarkMode,
       }),
     }

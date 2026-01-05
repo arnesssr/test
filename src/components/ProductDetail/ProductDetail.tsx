@@ -1,19 +1,26 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Product } from '@/types';
+import { useNavigate } from 'react-router-dom';
+import { Product, ProductBadge, ShippingInfo } from '@/types';
 import { useStore } from '@/store/useStore';
 import { ThreeDViewer } from '../ThreeDViewer/ThreeDViewer';
+import { ProductBadges } from '../ProductBadges/ProductBadges';
+import { ShippingInfoDisplay } from '../ShippingInfo/ShippingInfoDisplay';
+import { ShareProduct } from '../ShareProduct/ShareProduct';
+import { BulkQuoteModal } from '../BulkQuote/BulkQuoteModal';
 
 interface ProductDetailProps {
   product: Product;
 }
 
 export const ProductDetail = ({ product }: ProductDetailProps) => {
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]?.name);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [quantity, setQuantity] = useState(1);
   const [showVolumePrice, setShowVolumePrice] = useState(false);
+  const [showBulkQuote, setShowBulkQuote] = useState(false);
 
   const { addToCart, addToWishlist, addToComparison, wishlist, comparisonList } = useStore();
 
@@ -23,6 +30,52 @@ export const ProductDetail = ({ product }: ProductDetailProps) => {
   const handleAddToCart = () => {
     addToCart(product, quantity, selectedColor, selectedSize);
   };
+
+  const handleBuyNow = () => {
+    handleAddToCart();
+    navigate('/cart');
+  };
+
+  const derivedBadges = useMemo(() => {
+    const badges = new Set<ProductBadge>(product.badges || []);
+
+    if (product.tags.includes('featured')) badges.add('featured');
+
+    if (product.originalPrice && product.originalPrice > product.price) {
+      badges.add('sale');
+    }
+
+    if (product.rating >= 4.6 && product.reviewCount >= 250) badges.add('best-seller');
+
+    if (product.stock > 0 && product.stock < 10) badges.add('limited-stock');
+
+    return Array.from(badges);
+  }, [product]);
+
+  const shippingInfo = useMemo<ShippingInfo>(() => {
+    if (product.shippingInfo) return product.shippingInfo;
+
+    const freeShipping = product.price >= 75;
+    return {
+      freeShipping,
+      estimatedDays: [3, 7],
+      cost: freeShipping ? 0 : 9.99,
+      methods: [
+        {
+          name: 'Standard',
+          cost: freeShipping ? 0 : 9.99,
+          estimatedDays: [3, 7],
+          description: 'Reliable delivery',
+        },
+        {
+          name: 'Express',
+          cost: 19.99,
+          estimatedDays: [1, 3],
+          description: 'Faster delivery',
+        },
+      ],
+    };
+  }, [product]);
 
   const currentVolumePrice = product.volumePricing?.find(
     (vp) => quantity >= vp.quantity
@@ -65,34 +118,44 @@ export const ProductDetail = ({ product }: ProductDetailProps) => {
             {product.brand}
           </p>
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg
-                  key={i}
-                  className={`w-5 h-5 ${
-                    i < Math.floor(product.rating)
-                      ? 'text-yellow-400'
-                      : 'text-gray-300 dark:text-gray-600'
-                  }`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-              <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                {product.rating} ({product.reviewCount} reviews)
-              </span>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <svg
+                    key={i}
+                    className={`w-5 h-5 ${
+                      i < Math.floor(product.rating)
+                        ? 'text-yellow-400'
+                        : 'text-gray-300 dark:text-gray-600'
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+                <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                  {product.rating} ({product.reviewCount} reviews)
+                </span>
+              </div>
             </div>
-            {product.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 text-xs font-medium rounded"
-              >
-                {tag}
-              </span>
-            ))}
+
+            <ProductBadges badges={derivedBadges} />
+
+            {product.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {product.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 text-xs font-medium rounded"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -221,41 +284,66 @@ export const ProductDetail = ({ product }: ProductDetailProps) => {
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white py-3 rounded-lg font-medium transition-colors"
-          >
-            Add to Cart
-          </motion.button>
-          <button
-            onClick={() => addToWishlist(product)}
-            className={`p-3 rounded-lg border transition-colors ${
-              isInWishlist
-                ? 'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-500'
-                : 'border-gray-300 dark:border-gray-600 hover:border-red-500'
-            }`}
-          >
-            <svg className="w-6 h-6" fill={isInWishlist ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => addToComparison(product)}
-            disabled={isInComparison || comparisonList.length >= 4}
-            className={`p-3 rounded-lg border transition-colors ${
-              isInComparison
-                ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 text-primary-500'
-                : 'border-gray-300 dark:border-gray-600 hover:border-primary-500'
-            }`}
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </button>
+        <div className="space-y-3">
+          <div className="flex gap-3">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white py-3 rounded-lg font-medium transition-colors"
+            >
+              Add to Cart
+            </motion.button>
+            <button
+              onClick={() => addToWishlist(product)}
+              className={`p-3 rounded-lg border transition-colors ${
+                isInWishlist
+                  ? 'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-500'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-red-500'
+              }`}
+              aria-label="Add to wishlist"
+            >
+              <svg className="w-6 h-6" fill={isInWishlist ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => addToComparison(product)}
+              disabled={isInComparison || comparisonList.length >= 4}
+              className={`p-3 rounded-lg border transition-colors ${
+                isInComparison
+                  ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 text-primary-500'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-primary-500'
+              }`}
+              aria-label="Add to comparison"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleBuyNow}
+              disabled={product.stock === 0}
+              className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-gray-900 py-3 rounded-lg font-medium transition-colors"
+            >
+              Buy Now
+            </motion.button>
+            <button
+              onClick={() => setShowBulkQuote(true)}
+              className="border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 py-3 rounded-lg font-medium transition-colors dark:text-white"
+            >
+              Request Bulk Quote
+            </button>
+          </div>
+
+          <ShippingInfoDisplay shippingInfo={shippingInfo} />
+          <ShareProduct />
         </div>
 
         <div className="space-y-4">
@@ -293,6 +381,14 @@ export const ProductDetail = ({ product }: ProductDetailProps) => {
           </div>
         </div>
       </div>
+
+      <BulkQuoteModal
+        isOpen={showBulkQuote}
+        onClose={() => setShowBulkQuote(false)}
+        productId={product.id}
+        initialQuantity={quantity}
+        onSubmit={() => alert('Quote request submitted! We will contact you within 24 hours.')}
+      />
     </div>
   );
 };
