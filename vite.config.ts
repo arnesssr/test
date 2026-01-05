@@ -12,4 +12,10 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['three'],
   },
+  build: {
+    outDir: 'dist/client',
+  },
+  ssr: {
+    noExternal: ['react-router-dom'],
+  },
 });
