@@ -13,7 +13,7 @@ function RotatingBox({ texture }: { texture: THREE.Texture }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  useFrame((state) => {
+  useFrame((state: any) => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.005;
       if (isHovered) {
