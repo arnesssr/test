@@ -11,6 +11,8 @@ import { SellerInfo } from '@/components/SellerInfo/SellerInfo';
 import { RecentlyViewed } from '@/components/RecentlyViewed/RecentlyViewed';
 import { ReviewsSection } from '@/components/Reviews/ReviewsSection';
 import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether/FrequentlyBoughtTogether';
+import { ProductBreadcrumbs } from '@/components/Breadcrumbs/Breadcrumbs';
+import { ProductDetailSkeleton } from '@/components/Skeleton/Skeleton';
 
 type Review = ComponentProps<typeof ReviewsSection>['reviews'][number];
 
@@ -124,12 +126,8 @@ export const ProductPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full"
-        />
+      <div className="container mx-auto px-4 py-8">
+        <ProductDetailSkeleton />
       </div>
     );
   }
@@ -147,6 +145,7 @@ export const ProductPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <ProductBreadcrumbs product={product} />
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

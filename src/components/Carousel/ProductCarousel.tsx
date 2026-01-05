@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import type { MouseEvent } from 'react';
+import { ChevronLeft, ChevronRight, Star, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Product } from '@/types';
 import { useStore } from '@/store/useStore';
@@ -9,9 +10,10 @@ interface ProductCarouselProps {
   title: string;
   products: Product[];
   itemsPerView?: number;
+  onQuickView?: (product: Product) => void;
 }
 
-export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCarouselProps) => {
+export const ProductCarousel = ({ title, products, itemsPerView = 4, onQuickView }: ProductCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const { addToCart, wishlist, addToWishlist, removeFromWishlist } = useStore();
@@ -23,6 +25,11 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCa
     } else {
       addToWishlist(product);
     }
+  };
+
+  const handleQuickView = (e: MouseEvent, product: Product) => {
+    e.preventDefault();
+    onQuickView?.(product);
   };
 
   useEffect(() => {
@@ -74,29 +81,36 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCa
                   transition={{ duration: 0.3 }}
                 >
                   <div className="relative">
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="w-full h-48 object-cover"
-                      loading="lazy"
-                    />
-                    <button
-                      onClick={() => toggleWishlist(product)}
-                      className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-700 rounded-full shadow-md hover:shadow-lg transition-shadow"
-                      aria-label={wishlistItems.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                    >
-                      <svg 
-                        className={cn(
-                          'w-5 h-5',
-                          wishlistItems.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-400'
-                        )} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </button>
+                   <img
+                     src={product.images[0]}
+                     alt={product.name}
+                     className="w-full h-48 object-cover"
+                     loading="lazy"
+                   />
+                   <button
+                     onClick={(e) => handleQuickView(e, product)}
+                     className="absolute bottom-2 right-2 p-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg transition-shadow opacity-0 group-hover:opacity-100"
+                     aria-label="Quick view"
+                   >
+                     <Eye className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                   </button>
+                   <button
+                     onClick={() => toggleWishlist(product)}
+                     className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-700 rounded-full shadow-md hover:shadow-lg transition-shadow"
+                     aria-label={wishlistItems.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                   >
+                     <svg
+                       className={cn(
+                         'w-5 h-5',
+                         wishlistItems.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-400'
+                       )}
+                       fill="none"
+                       stroke="currentColor"
+                       viewBox="0 0 24 24"
+                     >
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                     </svg>
+                   </button>
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-lg mb-2 dark:text-white truncate">{product.name}</h3>

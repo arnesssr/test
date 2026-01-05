@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Header } from './Header';
 import { WhatsAppChat } from '@/components/WhatsAppChat/WhatsAppChat';
+import { SocialProofNotification } from '@/components/SocialProof/SocialProofNotification';
 import { useStore } from '@/store/useStore';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -27,10 +28,13 @@ export const Layout = ({ children }: LayoutProps) => {
       <main>{children}</main>
       
       {/* WhatsApp Chat */}
-      <WhatsAppChat 
-        phoneNumber="+1234567890" 
+      <WhatsAppChat
+        phoneNumber="+1234567890"
         message="Hello! I have a question about your products."
       />
+
+      {/* Social Proof Notifications */}
+      <SocialProofNotification />
       
       {/* Enhanced Footer */}
       <footer className="mt-16 bg-white dark:bg-gray-800 border-t dark:border-gray-700">

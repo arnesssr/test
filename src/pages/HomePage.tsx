@@ -7,7 +7,11 @@ import { ProductGrid } from '@/components/ProductGrid/ProductGrid';
 import { FilterPanel } from '@/components/FilterPanel/FilterPanel';
 import { ProductCarousel } from '@/components/Carousel/ProductCarousel';
 import { RecentlyViewed } from '@/components/RecentlyViewed/RecentlyViewed';
+import { CarouselSkeleton } from '@/components/Skeleton/Skeleton';
+import { QuickViewModal } from '@/components/QuickView/QuickViewModal';
+import { OneClickReorder } from '@/components/OneClickReorder/OneClickReorder';
 import { Sparkles, Shield, Truck, RotateCcw, TrendingUp, Tag, Clock, Award } from 'lucide-react';
+import { Product } from '@/types';
 
 export const HomePage = () => {
   const { data: products = [], isLoading } = useProducts();
@@ -15,6 +19,8 @@ export const HomePage = () => {
   const { trending } = useTrending(12);
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [email, setEmail] = useState('');
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [showQuickView, setShowQuickView] = useState(false);
 
   useEffect(() => {
     // Show newsletter popup after 30 seconds
@@ -37,14 +43,31 @@ export const HomePage = () => {
     }
   };
 
+  const handleQuickView = (product: Product) => {
+    setQuickViewProduct(product);
+    setShowQuickView(true);
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full"
-        />
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3">
+            <CarouselSkeleton />
+            <div className="mt-8 space-y-8">
+              <CarouselSkeleton />
+              <CarouselSkeleton />
+            </div>
+          </div>
+          <div className="hidden lg:block">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 space-y-4">
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -193,7 +216,7 @@ export const HomePage = () => {
               View All →
             </a>
           </div>
-          <ProductCarousel title="" products={featuredProducts.length > 0 ? featuredProducts : products.slice(0, 8)} />
+          <ProductCarousel title="" products={featuredProducts.length > 0 ? featuredProducts : products.slice(0, 8)} onQuickView={handleQuickView} />
         </section>
 
         {/* Deals Carousel */}
@@ -207,9 +230,10 @@ export const HomePage = () => {
               Limited Time
             </span>
           </div>
-          <ProductCarousel 
-            title="" 
-            products={dealProducts.length > 0 ? dealProducts : products.filter(p => p.originalPrice).slice(0, 8)} 
+          <ProductCarousel
+            title=""
+            products={dealProducts.length > 0 ? dealProducts : products.filter(p => p.originalPrice).slice(0, 8)}
+            onQuickView={handleQuickView}
           />
         </section>
 
@@ -224,7 +248,7 @@ export const HomePage = () => {
               View All →
             </a>
           </div>
-          <ProductCarousel title="" products={newProducts} />
+          <ProductCarousel title="" products={newProducts} onQuickView={handleQuickView} />
         </section>
 
         {/* Trending Products */}
@@ -238,17 +262,18 @@ export const HomePage = () => {
               Hot
             </span>
           </div>
-          <ProductCarousel title="" products={trending} />
+          <ProductCarousel title="" products={trending} onQuickView={handleQuickView} />
         </section>
 
         {/* Product Grid Section */}
+        <OneClickReorder />
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
           <aside className="lg:col-span-1">
             <FilterPanel products={products} />
           </aside>
 
           <main className="lg:col-span-3">
-            <ProductGrid products={filteredProducts} />
+            <ProductGrid products={filteredProducts} onQuickView={handleQuickView} />
           </main>
         </div>
 
@@ -306,6 +331,16 @@ export const HomePage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        isOpen={showQuickView}
+        onClose={() => {
+          setShowQuickView(false);
+          setQuickViewProduct(null);
+        }}
+      />
     </div>
   );
 };

@@ -5,9 +5,10 @@ import { useStore } from '@/store/useStore';
 
 interface ProductGridProps {
   products: Product[];
+  onQuickView?: (product: Product) => void;
 }
 
-export const ProductGrid = ({ products }: ProductGridProps) => {
+export const ProductGrid = ({ products, onQuickView }: ProductGridProps) => {
   const { sortBy, setSortBy } = useStore();
 
   const sortOptions: { value: SortOption; label: string }[] = [
@@ -77,7 +78,7 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
             >
-              <ProductCard product={product} />
+              <ProductCard product={product} onQuickView={onQuickView} />
             </motion.div>
           ))}
         </motion.div>
