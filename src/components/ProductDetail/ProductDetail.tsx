@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Product, ProductBadge, ShippingInfo } from '@/types';
 import { useStore } from '@/store/useStore';
-import { ThreeDViewer } from '../ThreeDViewer/ThreeDViewer';
 import { ProductBadges } from '../ProductBadges/ProductBadges';
 import { ShippingInfoDisplay } from '../ShippingInfo/ShippingInfoDisplay';
 import { ShareProduct } from '../ShareProduct/ShareProduct';
@@ -87,15 +86,25 @@ export const ProductDetail = ({ product }: ProductDetailProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div className="space-y-4">
-        <ThreeDViewer
-          imageUrl={product.images[selectedImage]}
-          productName={product.name}
-        />
+        <motion.div
+          className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <img
+            src={product.images[selectedImage]}
+            alt={product.name}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+          />
+        </motion.div>
         <div className="grid grid-cols-4 gap-2">
           {product.images.map((image, index) => (
-            <button
+            <motion.button
               key={index}
               onClick={() => setSelectedImage(index)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
                 selectedImage === index
                   ? 'border-primary-500'
@@ -107,7 +116,7 @@ export const ProductDetail = ({ product }: ProductDetailProps) => {
                 alt={`${product.name} - ${index + 1}`}
                 className="w-full h-full object-cover"
               />
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>

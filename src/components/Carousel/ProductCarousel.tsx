@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Product } from '@/types';
 import { useStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
@@ -34,7 +35,7 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCa
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const visibleItems = isMobile ? 1 : itemsPerView;
+  const visibleItems = isMobile ? 2 : itemsPerView;
   const maxIndex = Math.max(0, products.length - visibleItems);
 
   const next = () => {
@@ -52,16 +53,26 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCa
       <h2 className="text-2xl font-bold mb-6 dark:text-white">{title}</h2>
       <div className="relative">
         <div className="overflow-hidden">
-          <div 
-            className="flex transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${currentIndex * (100 / visibleItems)}%)` }}
+          <motion.div
+            className="flex"
+            initial={false}
+            animate={{ x: `-${currentIndex * (100 / visibleItems)}%` }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            {products.map((product) => (
-              <div
+            {products.map((product, index) => (
+              <motion.div
                 key={product.id}
                 className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 flex-shrink-0 px-2"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
               >
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <motion.div
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+                  whileHover={{ boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+                  transition={{ duration: 0.3 }}
+                >
                   <div className="relative">
                     <img
                       src={product.images[0]}
@@ -113,37 +124,45 @@ export const ProductCarousel = ({ title, products, itemsPerView = 4 }: ProductCa
                         ${(product.price * 1.2).toFixed(2)}
                       </span>
                     </div>
-                    <button
+                    <motion.button
                       onClick={() => addToCart(product, 1)}
-                      className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                      className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       Add to Cart
-                    </button>
+                    </motion.button>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
 
         {products.length > visibleItems && (
           <>
-            <button
+            <motion.button
               onClick={prev}
               disabled={currentIndex === 0}
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl transition-shadow z-10"
+              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-10"
               aria-label="Previous products"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
               <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={next}
               disabled={currentIndex === maxIndex}
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl transition-shadow z-10"
+              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-10"
               aria-label="Next products"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </motion.button>
           </>
         )}
       </div>
