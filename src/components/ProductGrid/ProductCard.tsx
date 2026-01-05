@@ -2,12 +2,14 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Product } from '@/types';
 import { useStore } from '@/store/useStore';
+import { Eye } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
+  onQuickView?: (product: Product) => void;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = ({ product, onQuickView }: ProductCardProps) => {
   const { addToCart, addToWishlist, wishlist } = useStore();
   const isInWishlist = wishlist.some((item) => item.product.id === product.id);
 
@@ -19,6 +21,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     addToWishlist(product);
+  };
+
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onQuickView?.(product);
   };
 
   const discountPercentage = product.originalPrice
@@ -52,6 +59,13 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               <span className="text-white font-bold">Out of Stock</span>
             </div>
           )}
+          <button
+            onClick={handleQuickView}
+            className="absolute bottom-2 right-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:scale-110"
+            title="Quick View"
+          >
+            <Eye className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+          </button>
         </div>
 
         <div className="p-4">

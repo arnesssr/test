@@ -7,6 +7,9 @@ import { ProductBadges } from '../ProductBadges/ProductBadges';
 import { ShippingInfoDisplay } from '../ShippingInfo/ShippingInfoDisplay';
 import { ShareProduct } from '../ShareProduct/ShareProduct';
 import { BulkQuoteModal } from '../BulkQuote/BulkQuoteModal';
+import { TrustBadges } from '../TrustBadges/TrustBadges';
+import { BNPLDisplay } from '../BNPL/BNPLDisplay';
+import { InventoryIndicator } from '../InventoryIndicator/InventoryIndicator';
 
 interface ProductDetailProps {
   product: Product;
@@ -353,6 +356,9 @@ export const ProductDetail = ({ product }: ProductDetailProps) => {
 
           <ShippingInfoDisplay shippingInfo={shippingInfo} />
           <ShareProduct />
+          <TrustBadges />
+          <BNPLDisplay price={effectivePrice * quantity} />
+          <InventoryIndicator stock={product.stock} />
         </div>
 
         <div className="space-y-4">
