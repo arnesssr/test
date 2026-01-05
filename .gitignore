@@ -31,6 +31,17 @@ dist-ssr
 # Build files
 build
 coverage
+dist
+dist-ssr
+
+# TypeScript compilation artifacts in root
+server.js
+server.d.ts
+vite-env.d.ts
+vite.config.js
+vite.config.d.ts
+*.tsbuildinfo
+!tsconfig*.json
 
 # OS
 Thumbs.db
