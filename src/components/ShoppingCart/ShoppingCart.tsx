@@ -134,7 +134,7 @@ export const ShoppingCart = () => {
         <AnimatePresence>
           {cart.map((item) => (
             <motion.div
-              key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`}
+              key={`${item.id}-${item.selectedColor ?? ''}-${item.selectedSize ?? ''}`}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
@@ -177,7 +177,9 @@ export const ShoppingCart = () => {
                         onClick={() =>
                           updateCartQuantity(
                             item.id,
-                            Math.max(1, (item.quantity || 1) - 1)
+                            Math.max(1, (item.quantity || 1) - 1),
+                            item.selectedColor,
+                            item.selectedSize
                           )
                         }
                         className="w-8 h-8 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -189,7 +191,12 @@ export const ShoppingCart = () => {
                       </span>
                       <button
                         onClick={() =>
-                          updateCartQuantity(item.id, (item.quantity || 1) + 1)
+                          updateCartQuantity(
+                            item.id,
+                            (item.quantity || 1) + 1,
+                            item.selectedColor,
+                            item.selectedSize
+                          )
                         }
                         className="w-8 h-8 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
@@ -208,7 +215,7 @@ export const ShoppingCart = () => {
                         ${(item.price * (item.quantity || 1)).toFixed(2)}
                       </span>
                       <button
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item.id, item.selectedColor, item.selectedSize)}
                         className="text-red-500 hover:text-red-600"
                         aria-label="Remove"
                       >

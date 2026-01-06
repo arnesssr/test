@@ -41,14 +41,14 @@ export const Wishlist = () => {
       <h1 className="text-3xl font-bold">My Wishlist ({wishlist.length})</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {wishlist.map((item, index) => (
+        {wishlist.map((product, index) => (
           <motion.div
-            key={item.product.id}
+            key={product.id}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
           >
-            <ProductCard product={item.product} />
+            <ProductCard product={product} />
           </motion.div>
         ))}
       </div>

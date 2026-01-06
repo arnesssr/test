@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, User, Search, Menu, X, Heart, Package, LogOut } from 'lucide-react';
+import {
+  ShoppingCart,
+  User,
+  Search,
+  Menu,
+  X,
+  Heart,
+  Package,
+  LogOut,
+  House,
+  Grid3x3,
+  Layers,
+  Tag,
+  UserPlus,
+} from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useAuthStore } from '../../store/authStore';
 import { MiniCart } from '../MiniCart/MiniCart';
@@ -417,16 +431,7 @@ export default function Header() {
       </AnimatePresence>
 
       {/* Modals and Overlays */}
-      <MiniCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <MiniCart isOpen={cartOpen} onClose={() => setCartOpen(false)} hideButton />
     </>
   );
 }
-
-// Import additional icons used in the component
-import { 
-  House, 
-  Grid3x3, 
-  Layers, 
-  Tag, 
-  UserPlus 
-} from 'lucide-react';
