@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, CartProduct } from '../types';
+import { CartProduct, Coupon, Product } from '../types';
 
 export interface SearchFilters {
   query: string;
@@ -33,11 +33,16 @@ interface StoreState {
   sortBy: string;
   recentlyViewed: Product[];
   savedForLater: CartProduct[];
-  appliedCoupon: string | null;
+  appliedCoupon: Coupon | null;
 
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateCartQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: CartProduct) => void;
+  removeFromCart: (productId: string, selectedColor?: string, selectedSize?: string) => void;
+  updateCartQuantity: (
+    productId: string,
+    quantity: number,
+    selectedColor?: string,
+    selectedSize?: string
+  ) => void;
   clearCart: () => void;
 
   addToWishlist: (product: Product) => void;
@@ -76,7 +81,7 @@ interface StoreState {
   moveToSavedForLater: (item: CartProduct) => void;
   moveToCart: (item: CartProduct) => void;
   removeSavedForLater: (itemId: string) => void;
-  applyCoupon: (code: string) => void;
+  applyCoupon: (coupon: Coupon) => void;
   removeCoupon: () => void;
 }
 
@@ -115,30 +120,54 @@ export const useStore = create<StoreState>()(
 
       addToCart: (product) => {
         const cart = get().cart;
-        const existingItem = cart.find((item) => item.id === product.id);
-        
+        const incomingQuantity = Math.max(1, product.quantity ?? 1);
+
+        const existingItem = cart.find(
+          (item) =>
+            item.id === product.id &&
+            item.selectedColor === product.selectedColor &&
+            item.selectedSize === product.selectedSize
+        );
+
         if (existingItem) {
           set({
             cart: cart.map((item) =>
-              item.id === product.id ? { ...item, quantity: (item.quantity || 1) + 1 } : item
+              item.id === product.id &&
+              item.selectedColor === product.selectedColor &&
+              item.selectedSize === product.selectedSize
+                ? { ...item, quantity: (item.quantity ?? 1) + incomingQuantity }
+                : item
             ),
           });
         } else {
-          set({ cart: [...cart, { ...product, quantity: 1 }] });
+          set({ cart: [...cart, { ...product, quantity: incomingQuantity }] });
         }
       },
 
-      removeFromCart: (productId) => {
-        set({ cart: get().cart.filter((item) => item.id !== productId) });
+      removeFromCart: (productId, selectedColor, selectedSize) => {
+        set({
+          cart: get().cart.filter(
+            (item) =>
+              !(
+                item.id === productId &&
+                (selectedColor === undefined || item.selectedColor === selectedColor) &&
+                (selectedSize === undefined || item.selectedSize === selectedSize)
+              )
+          ),
+        });
       },
 
-      updateCartQuantity: (productId, quantity) => {
+      updateCartQuantity: (productId, quantity, selectedColor, selectedSize) => {
         if (quantity <= 0) {
-          get().removeFromCart(productId);
+          get().removeFromCart(productId, selectedColor, selectedSize);
         } else {
           set({
             cart: get().cart.map((item) =>
-              item.id === productId ? { ...item, quantity } : item
+              item.id === productId &&
+              (selectedColor === undefined || item.selectedColor === selectedColor) &&
+              (selectedSize === undefined || item.selectedSize === selectedSize)
+                ? { ...item, quantity }
+                : item
             ),
           });
         }
@@ -240,7 +269,7 @@ export const useStore = create<StoreState>()(
       removeSavedForLater: (itemId) => {
         set({ savedForLater: get().savedForLater.filter((i: any) => i.id !== itemId) });
       },
-      applyCoupon: (code) => set({ appliedCoupon: code }),
+      applyCoupon: (coupon) => set({ appliedCoupon: coupon }),
       removeCoupon: () => set({ appliedCoupon: null }),
     }),
     {

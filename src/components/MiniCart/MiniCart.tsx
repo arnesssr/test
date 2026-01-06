@@ -4,38 +4,63 @@ import { useStore } from '@/store/useStore';
 import { Link, useNavigate } from 'react-router-dom';
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 
-export const MiniCart = () => {
+interface MiniCartProps {
+  isOpen?: boolean;
+  onOpen?: () => void;
+  onClose?: () => void;
+  hideButton?: boolean;
+}
+
+export const MiniCart = ({ isOpen: controlledOpen, onOpen, onClose, hideButton }: MiniCartProps) => {
   const { cart, removeFromCart, updateCartQuantity } = useStore();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const navigate = useNavigate();
+
+  const isOpen = controlledOpen ?? internalOpen;
+
+  const openCart = () => {
+    if (controlledOpen === undefined) {
+      setInternalOpen(true);
+    }
+    onOpen?.();
+  };
+
+  const closeCart = () => {
+    if (controlledOpen === undefined) {
+      setInternalOpen(false);
+    }
+    onClose?.();
+  };
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
   const total = subtotal + (subtotal > 100 ? 0 : 10);
 
   const handleCheckout = () => {
-    setIsOpen(false);
+    closeCart();
     navigate('/cart');
   };
 
   return (
     <>
       {/* Cart Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        aria-label="Open cart"
-      >
-        <ShoppingBag className="w-6 h-6 dark:text-white" />
-        {cart.length > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-          >
-            {cart.reduce((sum, item) => sum + (item.quantity || 1), 0)}
-          </motion.span>
-        )}
-      </button>
+      {!hideButton && (
+        <button
+          onClick={openCart}
+          className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Open cart"
+        >
+          <ShoppingBag className="w-6 h-6 dark:text-white" />
+          {cart.length > 0 && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+            >
+              {cart.reduce((sum, item) => sum + (item.quantity || 1), 0)}
+            </motion.span>
+          )}
+        </button>
+      )}
 
       {/* Backdrop */}
       <AnimatePresence>
@@ -44,7 +69,7 @@ export const MiniCart = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsOpen(false)}
+            onClick={closeCart}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
           />
         )}
@@ -67,7 +92,7 @@ export const MiniCart = () => {
                 Your Cart ({cart.reduce((sum, item) => sum + (item.quantity || 1), 0)})
               </h2>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={closeCart}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 dark:text-gray-400" />
@@ -85,7 +110,7 @@ export const MiniCart = () => {
                   </p>
                   <Link
                     to="/"
-                    onClick={() => setIsOpen(false)}
+                    onClick={closeCart}
                     className="inline-block px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
                   >
                     Start Shopping
@@ -103,7 +128,7 @@ export const MiniCart = () => {
                     >
                       <Link
                         to={`/product/${item.id}`}
-                        onClick={() => setIsOpen(false)}
+                        onClick={closeCart}
                         className="flex-shrink-0"
                       >
                         <img
@@ -116,7 +141,7 @@ export const MiniCart = () => {
                       <div className="flex-1 min-w-0">
                         <Link
                           to={`/product/${item.id}`}
-                          onClick={() => setIsOpen(false)}
+                          onClick={closeCart}
                           className="font-semibold dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors line-clamp-1"
                         >
                           {item.name}
@@ -128,7 +153,9 @@ export const MiniCart = () => {
                               onClick={() =>
                                 updateCartQuantity(
                                   item.id,
-                                  Math.max(1, (item.quantity || 1) - 1)
+                                  Math.max(1, (item.quantity || 1) - 1),
+                                  item.selectedColor,
+                                  item.selectedSize
                                 )
                               }
                               className="w-7 h-7 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center"
@@ -140,7 +167,12 @@ export const MiniCart = () => {
                             </span>
                             <button
                               onClick={() =>
-                                updateCartQuantity(item.id, (item.quantity || 1) + 1)
+                                updateCartQuantity(
+                                  item.id,
+                                  (item.quantity || 1) + 1,
+                                  item.selectedColor,
+                                  item.selectedSize
+                                )
                               }
                               className="w-7 h-7 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center"
                             >
@@ -149,7 +181,7 @@ export const MiniCart = () => {
                           </div>
 
                           <button
-                            onClick={() => removeFromCart(item.id)}
+                            onClick={() => removeFromCart(item.id, item.selectedColor, item.selectedSize)}
                             className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -196,7 +228,7 @@ export const MiniCart = () => {
                 </motion.button>
 
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeCart}
                   className="w-full text-center text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Continue Shopping

@@ -26,14 +26,7 @@ interface BottomNavProviderProps {
 }
 
 export default function BottomNavProvider({ children }: BottomNavProviderProps) {
-  const {
-    activeTab,
-    mobileSearchOpen,
-    mobileCategoryOpen,
-    setMobileSearchOpen,
-    setMobileCategoryOpen,
-    setActiveTab,
-  } = useStore();
+  const { mobileSearchOpen, mobileCategoryOpen, setActiveTab } = useStore();
 
   // Handle deep linking and URL sync
   useEffect(() => {
